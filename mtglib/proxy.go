@@ -37,7 +37,7 @@ type Proxy struct {
 	logger             Logger
 }
 
-func (p *Proxy) DomainFrontingAddress() string {
+func (p *Proxy) GetDomainFrontingAddress() string {
 	return net.JoinHostPort(p.secret.Host, strconv.Itoa(p.domainFrontingPort))
 }
 
@@ -239,7 +239,7 @@ func (p *Proxy) doDomainFronting(ctx *streamContext, conn *connRewind) {
 	p.eventStream.Send(p.ctx, NewEventDomainFronting(ctx.streamID))
 	conn.Rewind()
 
-	frontConn, err := p.network.DialContext(ctx, "tcp", p.DomainFrontingAddress())
+	frontConn, err := p.network.DialContext(ctx, "tcp", p.GetDomainFrontingAddress())
 	if err != nil {
 		p.logger.WarningError("cannot dial to the fronting domain", err)
 

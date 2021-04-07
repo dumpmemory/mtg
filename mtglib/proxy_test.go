@@ -143,7 +143,7 @@ func (suite *ProxyTestSuite) TestCannotInitIncorrectPreferIP() {
 }
 
 func (suite *ProxyTestSuite) TestDomainFrontingAddress() {
-	suite.Equal("httpbin.org:443", suite.p.DomainFrontingAddress())
+	suite.Equal("httpbin.org:443", suite.p.GetDomainFrontingAddress())
 }
 
 func (suite *ProxyTestSuite) TestHTTPSRequest() {
