@@ -20,7 +20,12 @@ debug = true
 # should either be base64-encoded or starts with ee.
 secret = "ee367a189aee18fa31c190054efd4a8e9573746f726167652e676f6f676c65617069732e636f6d"
 
-# Host:port pair to run proxy on.
+# Host:port pair to run proxy on (required).
+# The host part must be a literal IP address; hostnames and "*" are rejected.
+#   - IPv4 only:
+#     "0.0.0.0:3128"
+#   - dual-stack (IPv4 + IPv6) on Linux, macOS, FreeBSD, Windows:
+#     "[::]:3128"
 bind-to = "0.0.0.0:3128"
 
 # This defines what types of traffic mtg listens to. If you are not sure,
