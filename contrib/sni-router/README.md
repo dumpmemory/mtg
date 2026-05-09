@@ -47,13 +47,16 @@ docker compose exec mtg mtg access /config/config.toml
 
 HAProxy forwards TCP connections to mtg and Caddy with a PROXY protocol
 v2 header so both backends see the real client IP instead of HAProxy's
-container address.  The three pieces must stay in sync:
+container address.  Caddy also receives PROXY v2 from mtg on the
+fronting path (see "Fronting loop" below), so all four pieces below
+must stay in sync:
 
 - `haproxy.cfg` — `send-proxy-v2` on the `mtg` and `web` backend `server` lines
-- `mtg-config.toml` — `proxy-protocol-listener = true`
+- `mtg-config.toml` — `proxy-protocol-listener = true` (HAProxy → mtg)
+- `mtg-config.toml` — `[domain-fronting].proxy-protocol = true` (mtg → Caddy on fronting)
 - `Caddyfile` — `listener_wrappers { proxy_protocol { ... } tls }` on `:8443`
 
-If you disable one, disable all three, otherwise the backend will fail
+If you disable one, disable all four, otherwise the backend will fail
 to parse the connection.
 
 ## Fronting loop (why `[domain-fronting]` is set explicitly)
