@@ -56,6 +56,40 @@ container address.  The three pieces must stay in sync:
 If you disable one, disable all three, otherwise the backend will fail
 to parse the connection.
 
+## Fronting loop (why `[domain-fronting]` is set explicitly)
+
+When mtg sees TLS that isn't valid Telegram (a probe or a browser
+hitting the domain on `:443`), it forwards that connection to a real
+web server — "domain fronting".  By default mtg uses the secret's
+hostname as the fronting target and resolves it via DNS, which in
+this setup points back to this server: the fronting dial lands on
+HAProxy, SNI matches the secret, HAProxy routes the connection back
+to mtg → loop.
+
+The trigger is DNS, not name equality: any time the secret's hostname
+resolves to this host, the loop reproduces.  In an SNI-router
+deployment the secret's hostname has to point here for clients to
+reach mtg in the first place, so the loop is the default state unless
+mtg is steered away from HAProxy.
+
+`mtg-config.toml` therefore pins the fronting target to the Caddy
+container directly:
+
+```toml
+[domain-fronting]
+host = "web"
+port = 8443
+proxy-protocol = true
+```
+
+`host = "web"` resolves through compose-network DNS to the `web`
+service (Caddy), bypassing HAProxy.  `proxy-protocol = true` matches
+Caddy's `:8443` listener wrapper so the real client IP still
+propagates to Caddy's logs.
+
+Requires mtg ≥ 2.4 — hostname acceptance for the fronting target was
+added in #480.
+
 ## ACME (Let's Encrypt) notes
 
 HAProxy passes `/.well-known/acme-challenge/` requests on `:80` to

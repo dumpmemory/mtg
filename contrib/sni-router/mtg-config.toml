@@ -11,6 +11,17 @@ bind-to = "0.0.0.0:3128"
 # real client IP.  Keep this in sync with haproxy.cfg (`send-proxy-v2`).
 proxy-protocol-listener = true
 
+# Fronting target: point mtg at the Caddy container directly so its
+# fallback dial (for non-Telegram TLS) bypasses HAProxy and doesn't
+# loop back here.  Without this, mtg resolves the secret's hostname
+# via DNS, which in this setup resolves to this server -> HAProxy ->
+# mtg again.  See README's "Fronting loop" section for the long form.
+# Requires mtg >= 2.4 (#480 added hostname acceptance for the target).
+[domain-fronting]
+host = "web"
+port = 8443
+proxy-protocol = true
+
 [defense.anti-replay]
 enabled = true
 max-size = "1mib"
