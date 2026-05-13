@@ -44,7 +44,7 @@ concurrency = 8192
 # Sometimes you want to enforce mtg to use some types of
 # IP connectivity to Telegram. We have 4 modes:
 #   - prefer-ipv6:
-#     We can use both ipv4 and ipv6 but ipv6 has a preference
+#     We can use both ipv4 and ipv6 but ipv6 has a preference (default)
 #   - prefer-ipv4:
 #     We can use both ipv4 and ipv6 but ipv4 has a preference
 #   - only-ipv6:
