@@ -27,10 +27,9 @@ natural and passive DPI has nothing to flag.
 # 2. Generate an mtg secret:
 docker run --rm nineseconds/mtg:2 generate-secret --hex YOUR_DOMAIN
 
-# 3. Edit the config files:
-#    - mtg-config.toml  →  paste the secret
-#    - haproxy.cfg       →  replace "example.com" in the SNI ACL
-#    - .env or export    →  DOMAIN=your.domain
+# 3. Configure:
+#    - .env (or export)  →  DOMAIN=your.domain   # used by HAProxy + Caddy
+#    - mtg-config.toml   →  paste the secret
 
 # 4. (Optional) put your site content into www/
 
@@ -83,7 +82,7 @@ domain's DNS A/AAAA record points to this server before starting.
 | File | Purpose |
 |---|---|
 | `docker-compose.yml` | Service definitions |
-| `haproxy.cfg` | SNI routing rules — **edit the domain** |
+| `haproxy.cfg` | SNI routing rules (reads `$DOMAIN` from the environment) |
 | `mtg-config.toml` | mtg proxy config — **paste your secret** |
 | `Caddyfile` | Web server config (auto-HTTPS) |
 | `www/` | Static site content served by Caddy |

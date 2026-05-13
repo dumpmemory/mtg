@@ -1,8 +1,8 @@
 # Minimal mtg configuration for the SNI-router setup.
 #
-# 1. Generate a secret:  mtg generate-secret --hex example.com
-# 2. Paste it below.
-# 3. Replace example.com with your actual domain everywhere.
+# 1. Generate a secret:  mtg generate-secret --hex <your.domain>
+# 2. Paste it into the `secret` field below.
+# 3. Set DOMAIN=<your.domain> in .env (HAProxy + Caddy pick it up).
 
 secret = "PASTE_YOUR_SECRET_HERE"
 bind-to = "0.0.0.0:3128"
