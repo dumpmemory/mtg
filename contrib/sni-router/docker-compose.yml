@@ -39,7 +39,7 @@ services:
       - net.ipv4.ip_unprivileged_port_start=80
 
   mtg:
-    image: nineseconds/mtg:2
+    image: nineseconds/mtg
     volumes:
       - ./mtg-config.toml:/config/config.toml:ro,Z
     expose:
