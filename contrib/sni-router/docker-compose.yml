@@ -39,7 +39,8 @@ services:
       - net.ipv4.ip_unprivileged_port_start=80
 
   mtg:
-    image: nineseconds/mtg
+    # FIXME: :master until #480 lands in a tagged release; switch back to :2/:3 after release
+    image: nineseconds/mtg:master
     volumes:
       - ./mtg-config.toml:/config/config.toml:ro,Z
     expose:
