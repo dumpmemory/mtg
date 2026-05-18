@@ -63,6 +63,26 @@ must stay in sync:
 If you disable one, disable all four, otherwise the backend will fail
 to parse the connection.
 
+### Why HAProxy uses `network_mode: host`
+
+When a container is on a bridge network and a port is published with
+`ports: "443:443"`, the source IP of inbound connections is rewritten
+to the bridge gateway before HAProxy sees it — Docker's `docker-proxy`
+userland forwarder accepts on the host and re-opens the connection
+from the gateway; Podman's `slirp4netns` / `pasta` does the same in
+rootless mode.  The PROXY v2 header HAProxy then sends downstream
+carries that gateway address (e.g. `172.x.x.1`), not the real client.
+
+`network_mode: host` puts HAProxy in the host network namespace, so it
+binds `:443` / `:80` directly with no NAT in the path and observes the
+true source address of every connection.  mtg and Caddy stay on the
+compose bridge and are published only on `127.0.0.1` — HAProxy reaches
+them via host loopback, and the PROXY v2 header carries the real
+client IP (v4 or v6) end-to-end.
+
+Trade-off: HAProxy occupies the host's `:443` and `:80`.  Don't run
+anything else on those ports on the same host.
+
 ## Fronting loop (why `[domain-fronting]` is set explicitly)
 
 When mtg sees TLS that isn't valid Telegram (a probe or a browser
