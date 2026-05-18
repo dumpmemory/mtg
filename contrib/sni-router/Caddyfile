@@ -11,7 +11,7 @@
 	# is terminated on the unwrapped connection.
 	#
 	# `allow` lists the networks permitted to send PROXY headers.
-	# 127.0.0.0/8 covers HAProxy reaching Caddy over host loopback (HAProxy
+	# 127.0.0.1/32 covers HAProxy reaching Caddy over host loopback (HAProxy
 	# runs in network_mode: host and connects to the published 127.0.0.1
 	# port).  The RFC1918 ranges cover mtg → Caddy on the compose bridge
 	# (fronting path; see "Fronting loop" in README.md).
@@ -19,7 +19,7 @@
 		listener_wrappers {
 			proxy_protocol {
 				timeout 5s
-				allow 127.0.0.0/8 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
+				allow 127.0.0.1/32 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
 			}
 			tls
 		}

@@ -65,23 +65,26 @@ to parse the connection.
 
 ### Why HAProxy uses `network_mode: host`
 
-When a container is on a bridge network and a port is published with
-`ports: "443:443"`, the source IP of inbound connections is rewritten
-to the bridge gateway before HAProxy sees it — Docker's `docker-proxy`
-userland forwarder accepts on the host and re-opens the connection
-from the gateway; Podman's `slirp4netns` / `pasta` does the same in
-rootless mode.  The PROXY v2 header HAProxy then sends downstream
-carries that gateway address (e.g. `172.x.x.1`), not the real client.
+A published port on a bridge network rewrites the source IP of inbound
+connections to the bridge gateway before HAProxy sees it (Docker's
+`docker-proxy`, Podman's `slirp4netns`/`pasta`), so the PROXY v2 header
+HAProxy forwards downstream carries that gateway address, not the real
+client.  Host-mode HAProxy binds in the host netns directly, no NAT in
+the path, and the rewrite never happens.  mtg and Caddy stay on the
+compose bridge and are published on `127.0.0.1` only — HAProxy reaches
+them over host loopback.  `mtg-config.toml` does not need to change;
+fronting still uses `host = "web"` over compose-network DNS.
 
-`network_mode: host` puts HAProxy in the host network namespace, so it
-binds `:443` / `:80` directly with no NAT in the path and observes the
-true source address of every connection.  mtg and Caddy stay on the
-compose bridge and are published only on `127.0.0.1` — HAProxy reaches
-them via host loopback, and the PROXY v2 header carries the real
-client IP (v4 or v6) end-to-end.
-
-Trade-off: HAProxy occupies the host's `:443` and `:80`.  Don't run
-anything else on those ports on the same host.
+**Trade-offs.**
+- HAProxy owns the host's `:443` and `:80` — don't run anything else
+  on those ports.
+- Linux host only.  On Docker Desktop (macOS/Windows), "host" means
+  the Linux VM, not the user's machine, so external clients can't
+  reach the proxy.
+- If you run Docker with `userns-remap`, the in-container "root"
+  loses the privilege to bind `<1024` on the host; either disable
+  `userns-remap` for this stack or lower `net.ipv4.ip_unprivileged_port_start`
+  on the host.
 
 ## Fronting loop (why `[domain-fronting]` is set explicitly)
 
