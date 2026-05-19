@@ -6,7 +6,8 @@
 #   1. Set DOMAIN=<your.domain> in .env (HAProxy + Caddy pick it up).
 #   2. Generate the secret:  mtg generate-secret --hex <your.domain>
 #   3. Produce mtg-config.toml — pick one:
-#        MTG_SECRET=<secret> envsubst < mtg-config.toml.example > mtg-config.toml
+#        export MTG_SECRET=...     # paste the hex secret
+#        envsubst < mtg-config.toml.example > mtg-config.toml
 #      or just copy and hand-edit `${MTG_SECRET}`:
 #        cp mtg-config.toml.example mtg-config.toml && $EDITOR mtg-config.toml
 

@@ -31,7 +31,8 @@ docker run --rm nineseconds/mtg:2 generate-secret --hex YOUR_DOMAIN
 #    - .env (or export)  →  DOMAIN=your.domain   # used by HAProxy + Caddy
 #    - render mtg-config.toml from the tracked template
 #      (the rendered file is gitignored — secret stays out of git):
-MTG_SECRET=<secret-from-step-2> envsubst < mtg-config.toml.example > mtg-config.toml
+export MTG_SECRET=...    # paste the hex secret from step 2
+envsubst < mtg-config.toml.example > mtg-config.toml
 #      (Or `cp mtg-config.toml.example mtg-config.toml` and edit ${MTG_SECRET}
 #      by hand if you don't have envsubst.)
 

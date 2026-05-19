@@ -11,7 +11,8 @@
 # Quick start:
 #   1. Set DOMAIN in a .env file next to this one (or export it)
 #   2. mtg generate-secret YOUR_DOMAIN   -> render mtg-config.toml:
-#        MTG_SECRET=<secret> envsubst < mtg-config.toml.example > mtg-config.toml
+#        export MTG_SECRET=...     # paste the hex secret
+#        envsubst < mtg-config.toml.example > mtg-config.toml
 #      (the rendered file is gitignored). See README.md for the cp+edit variant.
 #   3. docker compose up -d
 #
