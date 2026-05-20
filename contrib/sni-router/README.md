@@ -29,7 +29,12 @@ docker run --rm nineseconds/mtg:2 generate-secret --hex YOUR_DOMAIN
 
 # 3. Configure:
 #    - .env (or export)  →  DOMAIN=your.domain   # used by HAProxy + Caddy
-#    - mtg-config.toml   →  paste the secret
+#    - render mtg-config.toml from the tracked template
+#      (the rendered file is gitignored — secret stays out of git):
+export MTG_SECRET=...    # paste the hex secret from step 2
+envsubst < mtg-config.toml.example > mtg-config.toml
+#      (Or `cp mtg-config.toml.example mtg-config.toml` and edit ${MTG_SECRET}
+#      by hand if you don't have envsubst.)
 
 # 4. (Optional) put your site content into www/
 
@@ -120,6 +125,7 @@ domain's DNS A/AAAA record points to this server before starting.
 |---|---|
 | `docker-compose.yml` | Service definitions |
 | `haproxy.cfg` | SNI routing rules (reads `$DOMAIN` from the environment) |
-| `mtg-config.toml` | mtg proxy config — **paste your secret** |
+| `mtg-config.toml.example` | mtg proxy config template — render with `envsubst` or copy + edit |
+| `mtg-config.toml` | Rendered mtg proxy config (gitignored, contains your secret) |
 | `Caddyfile` | Web server config (auto-HTTPS) |
 | `www/` | Static site content served by Caddy |
