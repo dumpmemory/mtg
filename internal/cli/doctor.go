@@ -361,26 +361,17 @@ func (d *Doctor) checkFrontingDomain(ntw mtglib.Network) bool {
 }
 
 func (d *Doctor) checkSecretHost(resolver *net.Resolver, ntw mtglib.Network) bool {
-	addresses, err := resolver.LookupIPAddr(context.Background(), d.conf.Secret.Host)
-	if err != nil {
+	res := runSNICheck(context.Background(), resolver, d.conf, ntw)
+
+	if res.ResolveErr != nil {
 		tplError.Execute(os.Stdout, map[string]any{ //nolint: errcheck
 			"description": fmt.Sprintf("cannot resolve DNS name of %s", d.conf.Secret.Host),
-			"error":       err,
+			"error":       res.ResolveErr,
 		})
 		return false
 	}
 
-	ourIP4 := d.conf.PublicIPv4.Get(nil)
-	if ourIP4 == nil {
-		ourIP4 = getIP(ntw, "tcp4")
-	}
-
-	ourIP6 := d.conf.PublicIPv6.Get(nil)
-	if ourIP6 == nil {
-		ourIP6 = getIP(ntw, "tcp6")
-	}
-
-	if ourIP4 == nil && ourIP6 == nil {
+	if !res.PublicIPKnown() {
 		tplError.Execute(os.Stdout, map[string]any{ //nolint: errcheck
 			"description": "cannot detect public IP address",
 			"error":       errors.New("cannot detect automatically and public-ipv4/public-ipv6 are not set in config"),
@@ -388,25 +379,34 @@ func (d *Doctor) checkSecretHost(resolver *net.Resolver, ntw mtglib.Network) boo
 		return false
 	}
 
-	strAddresses := []string{}
-	for _, value := range addresses {
-		if (ourIP4 != nil && value.IP.String() == ourIP4.String()) ||
-			(ourIP6 != nil && value.IP.String() == ourIP6.String()) {
-			tplODNSSNIMatch.Execute(os.Stdout, map[string]any{ //nolint: errcheck
-				"ip":       value.IP,
-				"hostname": d.conf.Secret.Host,
-			})
-			return true
+	if res.IPv4Match || res.IPv6Match {
+		var matched net.IP
+
+		for _, ip := range res.Resolved {
+			if (res.OurIPv4 != nil && ip.String() == res.OurIPv4.String()) ||
+				(res.OurIPv6 != nil && ip.String() == res.OurIPv6.String()) {
+				matched = ip
+				break
+			}
 		}
 
-		strAddresses = append(strAddresses, `"`+value.IP.String()+`"`)
+		tplODNSSNIMatch.Execute(os.Stdout, map[string]any{ //nolint: errcheck
+			"ip":       matched,
+			"hostname": d.conf.Secret.Host,
+		})
+		return true
+	}
+
+	strAddresses := make([]string, 0, len(res.Resolved))
+	for _, ip := range res.Resolved {
+		strAddresses = append(strAddresses, `"`+ip.String()+`"`)
 	}
 
 	tplEDNSSNIMatch.Execute(os.Stdout, map[string]any{ //nolint: errcheck
 		"hostname": d.conf.Secret.Host,
 		"resolved": strings.Join(strAddresses, ", "),
-		"ip4":      ourIP4,
-		"ip6":      ourIP6,
+		"ip4":      res.OurIPv4,
+		"ip6":      res.OurIPv6,
 	})
 
 	return false
