@@ -63,6 +63,29 @@ must stay in sync:
 If you disable one, disable all four, otherwise the backend will fail
 to parse the connection.
 
+### Why HAProxy uses `network_mode: host`
+
+A published port on a bridge network rewrites the source IP of inbound
+connections to the bridge gateway before HAProxy sees it (Docker's
+`docker-proxy`, Podman's `slirp4netns`/`pasta`), so the PROXY v2 header
+HAProxy forwards downstream carries that gateway address, not the real
+client.  Host-mode HAProxy binds in the host netns directly, no NAT in
+the path, and the rewrite never happens.  mtg and Caddy stay on the
+compose bridge and are published on `127.0.0.1` only — HAProxy reaches
+them over host loopback.  `mtg-config.toml` does not need to change;
+fronting still uses `host = "web"` over compose-network DNS.
+
+**Trade-offs.**
+- HAProxy owns the host's `:443` and `:80` — don't run anything else
+  on those ports.
+- Linux host only.  On Docker Desktop (macOS/Windows), "host" means
+  the Linux VM, not the user's machine, so external clients can't
+  reach the proxy.
+- If you run Docker with `userns-remap`, the in-container "root"
+  loses the privilege to bind `<1024` on the host; either disable
+  `userns-remap` for this stack or lower `net.ipv4.ip_unprivileged_port_start`
+  on the host.
+
 ## Fronting loop (why `[domain-fronting]` is set explicitly)
 
 When mtg sees TLS that isn't valid Telegram (a probe or a browser
