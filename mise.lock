@@ -37,7 +37,7 @@ version = "latest"
 backend = "go:golang.org/x/pkgsite/cmd/pkgsite"
 
 [[tools."go:golang.org/x/tools/gopls"]]
-version = "0.21.1"
+version = "0.22.0"
 backend = "go:golang.org/x/tools/gopls"
 
 [[tools."go:golang.org/x/vuln/cmd/govulncheck"]]
